@@ -11,3 +11,4 @@ from .insert import HydraInsertClient
 from .fetch import HydraFetchClient
 from .delete import HydraDeleteClient
 from .query import HydraQueryClient
+from .uri import HydraURIClient

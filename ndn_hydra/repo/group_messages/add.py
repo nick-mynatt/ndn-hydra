@@ -90,7 +90,7 @@ class AddMessage(SpecificMessage):
         pending_stores = global_view.get_pending_stores(file_name)
         for pending_store in pending_stores:
             # data_storage.add_metainfos(insertion_id, Name.to_str(file_name), packets, digests, Name.to_str(fetch_path))
-            global_view.store_file(file_name, pending_store)
+            global_view.store_file(file_name, pending_store, config['ip'])
             copies_needed -= 1
 
         # if I need to store this file

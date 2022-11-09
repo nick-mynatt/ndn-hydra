@@ -163,11 +163,12 @@ class MainLoop:
         store_message.node_name = self.config['node_name'].encode()
         store_message.favor = str(favor).encode()
         store_message.file_name = Name.from_str(file_name)
+        store_message.uri = self.config['ip']
         message = Message()
         message.type = MessageTypes.STORE
         message.value = store_message.encode()
 
-        self.global_view.store_file(file_name, self.config['node_name'])
+        self.global_view.store_file(file_name, self.config['node_name'], self.config['ip'])
         self.svs.publishData(message.encode())
         self.logger.info(f"[MSG][STORE]*   nam={self.config['node_name']};fil={file_name}")
 

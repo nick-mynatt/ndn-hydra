@@ -65,6 +65,7 @@ def process_cmd_opts():
         parser.add_argument("-v","--version",action="store_true",dest="version",default=False,required=False)
         parser.add_argument("-rp","--repoprefix",action="store",dest="repo_prefix",required=True)
         parser.add_argument("-n","--nodename",action="store",dest="node_name",required=True)
+        parser.add_argument("-i", "--ip",action="store",dest="ip", required=True)
         # Interpret Informational Arguments
         interpret_version()
         interpret_help()
@@ -75,6 +76,8 @@ def process_cmd_opts():
         args = {}
         args["repo_prefix"] = process_name(vars.repo_prefix)
         args["node_name"] = process_name(vars.node_name)
+        args["ip"] = vars.ip
+        print("IP:", vars.ip)
         workpath = "{home}/.ndn/repo{repo_prefix}/{node_name}".format(
             home=os.path.expanduser("~"),
             repo_prefix=args["repo_prefix"],
@@ -142,6 +145,7 @@ class HydraNodeThread(Thread):
         insert_handle = InsertCommandHandle(app, data_storage, pb, self.config, main_loop, global_view)
         delete_handle = DeleteCommandHandle(app, data_storage, pb, self.config, main_loop, global_view)
         query_handle = QueryHandle(app, global_view, self.config)
+        uri_handle = URIHandle(app, global_view, self.config)
 
         # Post-start
         async def start_main_loop():
@@ -176,6 +180,7 @@ def main() -> int:
         'network_cost': random.randint(1, 100),
         'storage_cost': random.randint(1, 100),
         'remaining_storage': random.randint(0, 1000),
+        'ip': '0.0.0.0'
     }
     cmd_args = process_cmd_opts()
     config = default_config.copy()

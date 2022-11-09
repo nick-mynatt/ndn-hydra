@@ -39,7 +39,8 @@ sql_create_stores_tables = """
 CREATE TABLE IF NOT EXISTS stores (
     id INTEGER PRIMARY KEY,
     file_name TEXT NOT NULL,
-    node_name NOT NULL
+    node_name NOT NULL,
+    uri TEXT NOT NULL
 );
 """
 sql_create_backups_tables = """
@@ -341,7 +342,7 @@ class GlobalView:
         """
         self.__execute_sql_qmark(sql, (file_name,))
 
-    def store_file(self, file_name:str, node_name:str):
+    def store_file(self, file_name:str, node_name:str, uri:str=''):
         # rerank backuped_by
         self.__rerank_backups(file_name, node_name)
         # remove from backuped_by
@@ -352,11 +353,11 @@ class GlobalView:
         # add to stored_by
         sql = """
         INSERT OR IGNORE INTO stores
-            (file_name, node_name)
+            (file_name, node_name, uri)
         VALUES
-            (?, ?)
+            (?, ?, ?)
         """
-        self.__execute_sql_qmark(sql, (file_name, node_name))
+        self.__execute_sql_qmark(sql, (file_name, node_name, uri))
 
     def set_backups(self, file_name:str, backup_list:List[Tuple[str, str]]):
         # remove previous backups
@@ -404,6 +405,19 @@ class GlobalView:
         for result in results:
             stores.append(result[1])
         return stores
+
+    def get_file_uri(self, file_name:str):
+        sql = """
+        SELECT DISTINCT file_name, node_name, uri
+        FROM stores
+        WHERE file_name = ?
+        ORDER BY node_name ASC
+        """
+        results = self.__execute_sql_qmark(sql, (file_name,))
+        uri = []
+        for result in results:
+            uri.append((result[1], result[2]))
+        return uri
 
     def get_backups(self, file_name:str):
         sql = """

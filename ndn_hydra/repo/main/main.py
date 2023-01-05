@@ -24,6 +24,7 @@ import sys, os
 from ndn.svs import SVSyncLogger
 from ndn_hydra.repo import *
 from ndn_hydra.repo.modules.file_fetcher import FileFetcher
+from ndn_hydra.repo.modules.http_storage import HttpStorage
 
 
 def process_cmd_opts():
@@ -77,7 +78,6 @@ def process_cmd_opts():
         args["repo_prefix"] = process_name(vars.repo_prefix)
         args["node_name"] = process_name(vars.node_name)
         args["ip"] = vars.ip
-        print("IP:", vars.ip)
         workpath = "{home}/.ndn/repo{repo_prefix}/{node_name}".format(
             home=os.path.expanduser("~"),
             repo_prefix=args["repo_prefix"],
@@ -86,6 +86,7 @@ def process_cmd_opts():
         args["data_storage_path"] = "{workpath}/data.db".format(workpath=workpath)
         args["global_view_path"] = "{workpath}/global_view.db".format(workpath=workpath)
         args["svs_storage_path"] = "{workpath}/svs.db".format(workpath=workpath)
+        args["http_storage_path"] = "{workpath}/storage/".format(workpath=workpath)
         return args
 
     args = parse_cmd_opts()
@@ -113,6 +114,12 @@ class HydraNodeThread(Thread):
             except FileExistsError:
                 pass
 
+        if (not os.path.exists(os.path.dirname(self.config['http_storage_path']))):
+            try:
+                os.makedirs(os.path.dirname(self.config['http_storage_path']))
+            except:
+                print("Could not create http storage directory")
+
         # logging
         SVSyncLogger.config(False, None, logging.INFO)
         logging.basicConfig(level=logging.INFO,
@@ -132,10 +139,11 @@ class HydraNodeThread(Thread):
         data_storage = SqliteStorage(self.config['data_storage_path'])
         global_view = GlobalView(self.config['global_view_path'])
         svs_storage = SqliteStorage(self.config['svs_storage_path'])
+        http_storage = HttpStorage(self.config['http_storage_path'])
         pb = PubSub(app)
 
         # file fetcher module
-        file_fetcher = FileFetcher(app, global_view, data_storage, self.config)
+        file_fetcher = FileFetcher(app, global_view, data_storage, http_storage, self.config)
 
         # main_loop (svs)
         main_loop = MainLoop(app, self.config, global_view, data_storage, svs_storage, file_fetcher)
@@ -166,6 +174,7 @@ def main() -> int:
         'data_storage_path': None,
         'global_view_path': None,
         'svs_storage_path': None,
+        'http_storage_path': None,
         'logging_path': None,
         'loop_period': 5000,
         'tracker_rate': 25000,

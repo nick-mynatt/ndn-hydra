@@ -9,6 +9,7 @@
 #  @Pip-Library:   https://pypi.org/project/ndn-hydra
 # -------------------------------------------------------------
 
+import os
 import asyncio as aio
 import logging
 import secrets
@@ -159,16 +160,17 @@ class MainLoop:
 
     def store(self, file_name: str):
         favor = 1.85
+        uri = self.config['ip'] + '/storage/' + file_name.lstrip('/')
         store_message = StoreMessageTlv()
         store_message.node_name = self.config['node_name'].encode()
         store_message.favor = str(favor).encode()
         store_message.file_name = Name.from_str(file_name)
-        store_message.uri = self.config['ip']
+        store_message.uri = uri
         message = Message()
         message.type = MessageTypes.STORE
         message.value = store_message.encode()
 
-        self.global_view.store_file(file_name, self.config['node_name'], self.config['ip'])
+        self.global_view.store_file(file_name, self.config['node_name'], uri)
         self.svs.publishData(message.encode())
         self.logger.info(f"[MSG][STORE]*   nam={self.config['node_name']};fil={file_name}")
 

@@ -8,7 +8,7 @@ from ndn_hydra.repo.protocol.base_models import FileList, File
 class HydraURIClient(object):
     def __init__(self, app: NDNApp, client_prefix: FormalName, repo_prefix: FormalName) -> None:
       """
-      This client queries a node within the remote repo.
+      This client retrieves the URI of a file stored.
       :param app: NDNApp.
       :param client_prefix: NonStrictName. Routable name to client.
       :param repo_prefix: NonStrictName. Routable name to remote repo.
@@ -17,9 +17,9 @@ class HydraURIClient(object):
       self.client_prefix = client_prefix
       self.repo_prefix = repo_prefix
 
-    async def get_uri(self, query: Name, node_name: str=None) -> str:
+    async def get_URIs(self, query: Name, node_name: str=None) -> str:
       """
-      Form a certain query and request that info from a node.
+      Express interest for URI of a file.
       """
       if not node_name:
           named_query = self.repo_prefix + [Component.from_str("uri")] + query
@@ -32,9 +32,9 @@ class HydraURIClient(object):
             print("Distributed repo does not have that file.")
             return
           else:
-            uris_str = bytes(content).decode()
-            uris = uris_str.split(" ")
-            print("URIs to download file from:", uris)
+            URIs_str = bytes(content).decode()
+            URIs = URIs_str.split(" ") # unpack str into list of uris
+            print("URIs to download file from:", URIs)
             return
 
       except (InterestNack, InterestTimeout, InterestCanceled, ValidationFailure) as e:

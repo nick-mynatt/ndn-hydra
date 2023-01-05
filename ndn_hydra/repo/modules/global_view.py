@@ -406,7 +406,7 @@ class GlobalView:
             stores.append(result[1])
         return stores
 
-    def get_file_uri(self, file_name:str):
+    def get_file_URIs(self, file_name:str):
         sql = """
         SELECT DISTINCT file_name, node_name, uri
         FROM stores
@@ -414,10 +414,11 @@ class GlobalView:
         ORDER BY node_name ASC
         """
         results = self.__execute_sql_qmark(sql, (file_name,))
-        uri = []
+        node_to_uri = {}
         for result in results:
-            uri.append((result[1], result[2]))
-        return uri
+            print("GET_FILE_URI RESULT:", result)
+            node_to_uri[result[1]] = result[2]
+        return node_to_uri
 
     def get_backups(self, file_name:str):
         sql = """

@@ -132,7 +132,7 @@ class HydraClient():
     async def query(self, query: Name, node_name: str=None) -> None:
         return await self.cquery.send_query(query, node_name)
     async def uri(self, file_name: FormalName, node_name: str=None) -> str:
-        return await self.curi.get_uri(file_name, node_name)
+        return await self.curi.get_URIs(file_name, node_name)
 
 async def run_hydra_client(app: NDNApp, args: Namespace) -> None:
   repo_prefix = Name.from_str(args.repo)

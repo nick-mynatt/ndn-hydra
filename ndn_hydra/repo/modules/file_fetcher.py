@@ -9,6 +9,7 @@
 #  @Pip-Library:   https://pypi.org/project/ndn-hydra
 # -------------------------------------------------------------
 
+import os
 import asyncio as aio
 import logging
 import random
@@ -18,15 +19,17 @@ from ndn.storage import Storage
 from ndn_hydra.repo.modules import *
 from ndn_hydra.repo.group_messages import *
 from ndn_hydra.repo.utils.concurrent_fetcher import concurrent_fetcher
+from ndn_hydra.repo.modules.http_storage import HttpStorage
 
 class FileFetcher:
     """
     A class to abstract client-to-node and node-to-node fetching.
     """
-    def __init__(self, app: NDNApp, global_view: GlobalView, data_storage: Storage, config: dict) -> None:
+    def __init__(self, app: NDNApp, global_view: GlobalView, data_storage: Storage, http_storage: HttpStorage, config: dict) -> None:
         self.app = app
         self.global_view = global_view
         self.data_storage = data_storage
+        self.http_storage = http_storage
         self.config = config
         self.repo_prefix = config['repo_prefix']
         self.logger = logging.getLogger()
@@ -71,6 +74,7 @@ class FileFetcher:
         start = time.time()
         async for (_, _, content, data_bytes, key) in concurrent_fetcher(self.app, fetch_path, file_name, 0, packets-1, aio.Semaphore(15)):
             self.data_storage.put_packet(key, data_bytes) #TODO: check digest
+            self.http_storage.store_bytes(file_name, data_bytes)
         end = time.time()
         duration = end - start
         self.logger.info(f"[ACT][FETCHED]* pcks={packets};duration={duration}")
@@ -79,5 +83,3 @@ class FileFetcher:
             self.fetching.remove(file_name)
         except:
             pass
-
-    

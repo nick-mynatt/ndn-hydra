@@ -46,7 +46,7 @@ class URIHandle(object):
         :param prefix: NonStrictName.
         """
         self.app.route(prefix)(self._on_interest)
-        self.logger.info(f'IP handle: listening to {Name.to_str(prefix)}')
+        self.logger.info(f'URI handle: listening to {Name.to_str(prefix)}')
 
     def unlisten(self, prefix):
         """
@@ -56,24 +56,21 @@ class URIHandle(object):
         self.logger.info(f'IP handle: stop listening to {Name.to_str(prefix)}')
 
     def _on_interest(self, int_name, int_param, _app_param):
-        print("IP HANDLE: _on_interest called")
-        print('params:', int_name, int_param, _app_param, sep='\n')
-
-
-        print("________________")
-
-
+        print("URI HANDLE: _on_interest called")
         file_name = Name.to_str(int_name[2:])
         print("File name:", file_name)
         if not file_name:
             return
-
-
         print("Getting file from globalview:", file_name)
-        file = self.global_view.get_file_uri(file_name)
-        print("File:", file)
-        uris = [x[1] for x in file]
-        uris_str = " ".join(uris)
+        try:
+            node_to_URI_dic = self.global_view.get_file_URIs(file_name)
+        except:
+            print("File not found.")
+            return
+        print("Node to uri dic:", node_to_URI_dic)
+        uris = list(node_to_URI_dic.values())
+        print(uris)
+        uris_str = " ".join(uris) # convert list to str for bytes encoding
         print("URI:", uris)
 
         if uris:

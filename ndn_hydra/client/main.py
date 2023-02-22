@@ -80,8 +80,8 @@ def parse_hydra_cmd_opts() -> Namespace:
     insertsp = subparsers.add_parser('insert',add_help=False)
     insertsp.add_argument("-r","--repoprefix",action="store",dest="repo",required=True)
     insertsp.add_argument("-f","--filename",action="store",dest="filename",required=True)
-    insertsp.add_argument("-p","--path",action="store",dest="path",required=True)
-    insertsp.add_argument("-w","--wait",action="store",dest="wait",required=True)
+    insertsp.add_argument("-p","--path",action="store",dest="path",required=False)
+    insertsp.add_argument("-w","--wait",action="store",dest="wait",required=False)
     insertsp.add_argument("-u","--uri",action="store",dest="uri",default=None,required=False)
 
     deletesp = subparsers.add_parser('delete',add_help=False)

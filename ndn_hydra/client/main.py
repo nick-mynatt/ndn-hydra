@@ -82,6 +82,7 @@ def parse_hydra_cmd_opts() -> Namespace:
     insertsp.add_argument("-f","--filename",action="store",dest="filename",required=True)
     insertsp.add_argument("-p","--path",action="store",dest="path",required=True)
     insertsp.add_argument("-w","--wait",action="store",dest="wait",required=True)
+    insertsp.add_argument("-u","--uri",action="store",dest="uri",default=None,required=False)
 
     deletesp = subparsers.add_parser('delete',add_help=False)
     deletesp.add_argument("-r","--repoprefix",action="store",dest="repo",required=True)
@@ -125,6 +126,8 @@ class HydraClient():
         self.curi = HydraURIClient(app, client_prefix, repo_prefix)
     async def insert(self, file_name: FormalName, path: str) -> bool:
         return await self.cinsert.insert_file(file_name, path);
+    async def insert_uri(self, file_name: FormalName, uri: str):
+        return await self.cinsert.insert_uri(file_name, uri)
     async def delete(self, file_name: FormalName) -> bool:
         return await self.cdelete.delete_file(file_name);
     async def fetch(self, file_name: FormalName, local_filename: str = None, overwrite: bool = False) -> None:
@@ -132,7 +135,7 @@ class HydraClient():
     async def query(self, query: Name, node_name: str=None) -> None:
         return await self.cquery.send_query(query, node_name)
     async def uri(self, file_name: FormalName, node_name: str=None) -> str:
-        return await self.curi.get_URIs(file_name, node_name)
+        return await self.curi.get_URI(file_name, node_name)
 
 async def run_hydra_client(app: NDNApp, args: Namespace) -> None:
   repo_prefix = Name.from_str(args.repo)
@@ -144,7 +147,10 @@ async def run_hydra_client(app: NDNApp, args: Namespace) -> None:
       filename = Name.from_str(args.filename)
 
   if args.function == "insert":
-    await client.insert(filename, args.path)
+    if args.uri:
+        await client.insert_uri(filename, args.uri)
+    else:
+        await client.insert(filename, args.path)
     print("Client finished Insert Command!")
     await asyncio.sleep(float(args.wait))
   elif args.function == "delete":

@@ -416,8 +416,7 @@ class GlobalView:
         results = self.__execute_sql_qmark(sql, (file_name,))
         node_to_uri = {}
         for result in results:
-            print("GET_FILE_URI RESULT:", result)
-            node_to_uri[result[1]] = result[2]
+            node_to_uri[result[0]] = result[2]
         return node_to_uri
 
     def get_backups(self, file_name:str):

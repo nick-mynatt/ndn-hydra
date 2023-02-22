@@ -17,7 +17,7 @@ class HydraURIClient(object):
       self.client_prefix = client_prefix
       self.repo_prefix = repo_prefix
 
-    async def get_URIs(self, query: Name, node_name: str=None) -> str:
+    async def get_URI(self, query: Name, node_name: str=None) -> str:
       """
       Express interest for URI of a file.
       """

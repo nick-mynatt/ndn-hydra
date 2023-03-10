@@ -11,3 +11,7 @@ IPHydra is a fork of [ndn-hydra](https://github.com/justincpresley/ndn-hydra) wi
 2. Be able to use the 'globus-url-copy' command. On Ubuntu I found this to be easiest with: 
    ``sudo apt install globus-gass-copy-progs``
 3. Optionally, install nginx to host data over IP. An nginx.conf example file is provided.
+
+## Fabric
+
+An example of IPHydra running on Fabric is given in ./FABRIC. This specific example runs on layer 2 due to routing issues.

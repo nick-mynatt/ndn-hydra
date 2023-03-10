@@ -15,6 +15,14 @@ class HttpStorage():
     with open(full_path, 'wb') as f:
         f.write(data_bytes)
 
+  def read_bytes(self, file_name: str) -> bytes:
+    print(file_name)
+    file_name = file_name.lstrip('/')
+    full_path = self.path + file_name
+    with open(full_path, 'rb') as f:
+        data = f.read()
+    return data
+
   def delete_file(self, file_name: str):
     file_name = file_name.lstrip('/')
     try:

@@ -80,9 +80,8 @@ def parse_hydra_cmd_opts() -> Namespace:
     insertsp = subparsers.add_parser('insert',add_help=False)
     insertsp.add_argument("-r","--repoprefix",action="store",dest="repo",required=True)
     insertsp.add_argument("-f","--filename",action="store",dest="filename",required=True)
-    insertsp.add_argument("-p","--path",action="store",dest="path",required=False)
-    insertsp.add_argument("-w","--wait",action="store",dest="wait",required=False)
-    insertsp.add_argument("-u","--uri",action="store",dest="uri",default=None,required=False)
+    insertsp.add_argument("-p","--path",action="store",dest="path",required=True)
+    insertsp.add_argument("-w","--wait",action="store",dest="wait",required=True)
 
     deletesp = subparsers.add_parser('delete',add_help=False)
     deletesp.add_argument("-r","--repoprefix",action="store",dest="repo",required=True)
@@ -98,10 +97,12 @@ def parse_hydra_cmd_opts() -> Namespace:
     querysp.add_argument("-q","--query",action="store",dest="query",required=True)
     querysp.add_argument("-n","--nodename",action="store",dest="nodename",default=None, required=False)
 
-    querysp = subparsers.add_parser('uri',add_help=False)
-    querysp.add_argument("-r","--repoprefix",action="store",dest="repo",required=True)
-    querysp.add_argument("-f","--filename",action="store",dest="filename",required=True)
-    querysp.add_argument("-n","--nodename",action="store",dest="nodename",default=None, required=False)
+    urisp = subparsers.add_parser('uri',add_help=False)
+    urisp.add_argument("-r","--repoprefix",action="store",dest="repo",required=True)
+    urisp.add_argument("-f","--filename",action="store",dest="filename",required=True)
+    urisp.add_argument("-p","--path",action="store",dest="path", default=None, required=False)
+    urisp.add_argument("-u","--uri",action="store",dest="uri",default=None, required=False)
+    urisp.add_argument("-n","--nodename",action="store",dest="nodename",default=None, required=False)
 
     # Interpret Informational Arguments
     interpret_version()
@@ -126,16 +127,17 @@ class HydraClient():
         self.curi = HydraURIClient(app, client_prefix, repo_prefix)
     async def insert(self, file_name: FormalName, path: str) -> bool:
         return await self.cinsert.insert_file(file_name, path);
-    async def insert_uri(self, file_name: FormalName, uri: str):
-        return await self.cinsert.insert_uri(file_name, uri)
     async def delete(self, file_name: FormalName) -> bool:
         return await self.cdelete.delete_file(file_name);
     async def fetch(self, file_name: FormalName, local_filename: str = None, overwrite: bool = False) -> None:
         return await self.cfetch.fetch_file(file_name, local_filename, overwrite)
     async def query(self, query: Name, node_name: str=None) -> None:
         return await self.cquery.send_query(query, node_name)
-    async def uri(self, file_name: FormalName, node_name: str=None) -> str:
-        return await self.curi.get_URI(file_name, node_name)
+    async def uri(self, file_name: FormalName, path: str=None, uri: str=None, node_name: str=None) -> None:
+        if uri:
+            return await self.curi.insert_URI(file_name, uri)
+        else:
+            return await self.curi.fetch_URI(file_name, path, node_name)
 
 async def run_hydra_client(app: NDNApp, args: Namespace) -> None:
   repo_prefix = Name.from_str(args.repo)
@@ -147,10 +149,7 @@ async def run_hydra_client(app: NDNApp, args: Namespace) -> None:
       filename = Name.from_str(args.filename)
 
   if args.function == "insert":
-    if args.uri:
-        await client.insert_uri(filename, args.uri)
-    else:
-        await client.insert(filename, args.path)
+    await client.insert(filename, args.path)
     print("Client finished Insert Command!")
     await asyncio.sleep(float(args.wait))
   elif args.function == "delete":
@@ -170,7 +169,7 @@ async def run_hydra_client(app: NDNApp, args: Namespace) -> None:
     print(f"Client finished Query Command! - total time (with disk): {toc - tic:0.4f} secs")
   elif args.function == 'uri':
     tic = time.perf_counter()
-    await client.uri(filename)
+    await client.uri(filename, args.path, args.uri, args.nodename)
     toc = time.perf_counter()
     print(f"Client finished URI Command! - total time (with disk): {toc - tic:0.4f} secs")
   else:

@@ -13,7 +13,7 @@ import logging
 import time
 from hashlib import blake2b
 from ndn.app import NDNApp
-from ndn.encoding import Name, Component, FormalName, ContentType
+from ndn.encoding import Name, Component, FormalName
 from ndn_hydra.repo.protocol.base_models import InsertCommand, File
 from ndn_hydra.repo.utils.pubsub import PubSub
 
@@ -80,9 +80,3 @@ class HydraInsertClient(object):
       else:
           logging.debug('Published an insert msg but was not acknowledged by a subscriber')
       return is_success
-
-    async def insert_uri(self, file_name: FormalName, uri: str):
-      
-      name = self.repo_prefix + Name.from_str('/uri/upload') + file_name
-      param = uri
-      data_name, meta_info, content = await self.app.express_interest(name, app_param=param, can_be_prefix=True, must_be_fresh=True, lifetime=3000)

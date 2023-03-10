@@ -124,11 +124,6 @@ class QueryHandle(object):
                     filelist.list.append(file)
             self.app.put_data(int_name, content=filelist.encode(), freshness_period=3000, content_type=ContentType.BLOB)
             return
-        elif querytype == "uri":
-            self.logger.info(f'[CMD][QUERY]    query received: uri')
-            # get from global view
-            return
-
         else:
             self.logger.info(f'[CMD][QUERY]    unknown query received')
             self.app.put_data(int_name, content=None, freshness_period=3000, content_type=ContentType.NACK)

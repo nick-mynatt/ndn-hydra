@@ -153,7 +153,7 @@ class HydraNodeThread(Thread):
         insert_handle = InsertCommandHandle(app, data_storage, pb, self.config, main_loop, global_view)
         delete_handle = DeleteCommandHandle(app, data_storage, pb, self.config, main_loop, global_view)
         query_handle = QueryHandle(app, global_view, self.config)
-        uri_handle = URIHandle(app, global_view, self.config)
+        uri_handle = URIHandle(app, http_storage, main_loop, global_view, self.config)
 
         # Post-start
         async def start_main_loop():

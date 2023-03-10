@@ -17,12 +17,12 @@ from ndn_hydra.repo.modules.global_view import GlobalView
 class StoreMessageTypes:
     NODE_NAME = 84
     FAVOR = 86
-    URI = 87
+    IP = 87
 class StoreMessageTlv(TlvModel):
     node_name = BytesField(StoreMessageTypes.NODE_NAME)
     favor = BytesField(StoreMessageTypes.FAVOR)
     file_name = NameField()
-    uri = BytesField(StoreMessageTypes.URI, is_string=True)
+    ip = BytesField(StoreMessageTypes.IP, is_string=True)
 
 class StoreMessage(SpecificMessage):
     def __init__(self, nid:str, seqno:int, raw_bytes:bytes):
@@ -39,6 +39,6 @@ class StoreMessage(SpecificMessage):
             self.logger.warning('add to pending store')
             global_view.add_pending_store(file_name, node_name)
         else:
-            global_view.store_file(file_name, node_name, self.message.uri)
+            global_view.store_file(file_name, node_name, self.message.ip)
 
         global_view.update_node(node_name, float(self.message.favor.tobytes().decode()), self.seqno)

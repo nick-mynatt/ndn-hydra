@@ -16,18 +16,22 @@ from ndn.encoding import Name, ContentType, Component
 from ndn.storage import Storage
 from ndn_hydra.repo.modules.global_view import GlobalView
 from ndn_hydra.repo.protocol.base_models import FileList, File
+from ndn_hydra.repo.main.main_loop import MainLoop
+from ndn_hydra.repo.modules.http_storage import HttpStorage
 
 class URIHandle(object):
     """
     URIHandle processes URI interests.
     """
-    def __init__(self, app: NDNApp, global_view: GlobalView, config: dict):
+    def __init__(self, app: NDNApp, http_storage: HttpStorage, main_loop: MainLoop, global_view: GlobalView, config: dict):
         """
         :param app: NDNApp.
         :param global_view: Global View.
         :param config: All config Info.
         """
         self.app = app
+        self.http_storage = http_storage
+        self.main_loop = main_loop
         self.global_view = global_view
         self.node_name = config['node_name']
         self.repo_prefix = config['repo_prefix']
@@ -38,7 +42,6 @@ class URIHandle(object):
         self.node_comp = "/node"
 
         self.listen(Name.from_str(self.repo_prefix + self.command_comp))
-        self.listen(Name.from_str(self.repo_prefix + self.command_comp + '/upload'))
         self.listen(Name.from_str(self.repo_prefix + self.node_comp  + self.node_name + self.command_comp))
 
     def listen(self, prefix):
@@ -57,21 +60,23 @@ class URIHandle(object):
         self.logger.info(f'IP handle: stop listening to {Name.to_str(prefix)}')
 
     def _on_interest(self, int_name, int_param, _app_param):
-        file_name = Name.to_str(int_name[2:]).split('/params')[0]
-        
-        if '/upload' in file_name:
-            file_name = file_name.lstrip('/upload')
-            uri = bytes(_app_param).decode()
-            print("Storing file", file_name, "with uri", uri)
-            self.global_view.store_file(file_name, node_name=self.node_name, uri=uri)
-            self.app.put_data(int_name, content=bytes('Worked'.encode()), freshness_period=3000, content_type=ContentType.BLOB)
+        type = Component.to_str(int_name[2])
+        file_name = Name.to_str(int_name[3:]).split('/params')[0]
+        uri = None
+        if _app_param:
+            uri = bytes(_app_param)
+
+        if type == 'upload':
+            # print('upload received')
+            self.http_storage.store_bytes(file_name, uri)
+            self.main_loop.store(file_name)
+            self.app.put_data(int_name, content="Success!".encode(), freshness_period=3000, content_type=ContentType.BLOB)
+
+        if type == 'fetch':
+            # print('fetch received')
+            data = self.http_storage.read_bytes(file_name)
+            # print("data:", data)
+            self.app.put_data(int_name, content=data, freshness_period=3000, content_type=ContentType.BLOB)
+
         else:
-            file_name = file_name.lstrip('/')
-            node_to_URI_dic = self.global_view.get_file_URIs(file_name)
-            uris = list(node_to_URI_dic.values())
-            uris_str = " ".join(uris) # convert list to str for bytes encoding
-            content = bytes(uris_str.encode())
-            if uris:
-                self.app.put_data(int_name, content=content, freshness_period=3000, content_type=ContentType.BLOB)
-            else:
-                self.app.put_data(int_name, content=None, freshness_period=3000, content_type=ContentType.NACK)
+            self.app.put_data(int_name, content=None, freshness_period=3000, content_type=ContentType.NACK)
